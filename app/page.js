@@ -1,101 +1,215 @@
-import Image from "next/image";
+'use client';
+import React from 'react'
+import { useRef, useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
+import 'react-toastify/dist/ReactToastify.css';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+const Home = () => {
+    const ref = useRef()
+    const passwordRef = useRef()
+    const [form, setform] = useState({ site: "", username: "", password: "" })
+    const [passwordArray, setPasswordArray] = useState([])
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    const getPasswords = async () => {
+        let req = await fetch("http://localhost:3000/")
+        let passwords = await req.json()
+        setPasswordArray(passwords)
+    }
+
+
+    useEffect(() => {
+        getPasswords()
+    }, [])
+
+
+    const savePassword = async () => {
+      if (!form.site || !form.username || !form.password) {
+          toast.error("All fields are required!", { theme: "dark" });
+          return;
+      }
+  
+      const newPassword = { id: uuidv4(), ...form };
+  
+      let response = await fetch("http://localhost:3000/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newPassword),
+      });
+  
+      let result = await response.json();
+  
+      if (result.success) {
+          toast.success("Password saved!", { theme: "dark" });
+          setPasswordArray([...passwordArray, newPassword]);
+          setform({ site: "", username: "", password: "" }); // Reset form
+      } else {
+          toast.error("Failed to save password!", { theme: "dark" });
+      }
+  };
+  
+
+    const copyText = (text) => {
+        toast('Copied to clipboard!', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+        });
+        navigator.clipboard.writeText(text)
+    }
+
+    const showPassword = () => {
+        passwordRef.current.type = "text"
+        console.log(ref.current.src)
+        if (ref.current.src.includes("eyecross.png")) {
+            ref.current.src = "eye.jpg"
+            passwordRef.current.type = "password"
+        }
+        else {
+            passwordRef.current.type = "text"
+            ref.current.src = "eyecross.png"
+        }
+
+    }
+
+    const deletePassword = async (id) => {
+      let c = confirm("Do you really want to delete this password?");
+      if (c) {
+          setPasswordArray(passwordArray.filter(item => item.id !== id));
+  
+          await fetch(`http://localhost:3000/passwords/${id}`, { 
+              method: "DELETE" 
+          });
+  
+          toast('Password Deleted!', { theme: "dark" });
+      }
+  };
+
+    const editPassword = (id) => {
+        setform({ ...passwordArray.filter(i => i.id === id)[0], id: id })
+        setPasswordArray(passwordArray.filter(item => item.id !== id))
+    }
+
+
+    const handleChange = (e) => {
+        setform({ ...form, [e.target.name]: e.target.value })
+    }
+
+
+    return (
+        <>
+            <ToastContainer />
+            <div className="absolute inset-0 -z-10 h-full w-full bg-green-50 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"><div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-green-400 opacity-20 blur-[100px]"></div></div>
+            <div className=" p-3 md:mycontainer min-h-[88.2vh] ">
+                <h1 className='text-4xl text font-bold text-center'>
+                    <span className='text-green-500'> &lt;</span>
+
+                    <span>Pass</span><span className='text-green-500'>OP/&gt;</span>
+
+                </h1>
+                <p className='text-green-900 text-lg text-center'>Your own Password Manager</p>
+
+                <div className="flex flex-col p-4 text-black gap-8 items-center">
+                    <input value={form.site} onChange={handleChange} placeholder='Enter website URL' className='rounded-full border border-green-500 w-full p-4 py-1' type="text" name="site" id="site" />
+                    <div className="flex flex-col md:flex-row w-full justify-between gap-8">
+                        <input value={form.username} onChange={handleChange} placeholder='Enter Username' className='rounded-full border border-green-500 w-full p-4 py-1' type="text" name="username" id="username" />
+                        <div className="relative">
+                            <input ref={passwordRef} value={form.password} onChange={handleChange} placeholder='Enter Password' className='rounded-full border border-green-500 w-full p-4 py-1' type="password" name="password" id="password" />
+                            <span className='absolute right-[3px] top-[4px] cursor-pointer' onClick={showPassword}>
+                                <img ref={ref} className='p-1' width={26} src="eye.jpg" alt="eye" />
+                            </span>
+                        </div>
+
+                    </div>
+                    <button onClick={savePassword} className='flex justify-center items-center gap-2 bg-green-400 hover:bg-green-300 rounded-full px-8 py-2 w-fit border border-green-900'>
+                        <lord-icon
+                            src="https://cdn.lordicon.com/jgnvfzqg.json"
+                            trigger="hover" >
+                        </lord-icon>
+                        Save</button>
+                </div>
+
+                <div className="passwords">
+                    <h2 className='font-bold text-2xl py-4'>Your Passwords</h2>
+                    {passwordArray.length === 0 && <div> No passwords to show</div>}
+                    {passwordArray.length != 0 && <table className="table-auto w-full rounded-md overflow-hidden mb-10">
+                        <thead className='bg-green-800 text-white'>
+                            <tr>
+                                <th className='py-2'>Site</th>
+                                <th className='py-2'>Username</th>
+                                <th className='py-2'>Password</th>
+                                <th className='py-2'>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className='bg-green-100'>
+                            {passwordArray.map((item, index) => {
+                                return <tr key={index}>
+                                    <td className='py-2 border border-white text-center'>
+                                        <div className='flex items-center justify-center '>
+                                            <a href={item.site} target='_blank'>{item.site}</a>
+                                            <div className='lordiconcopy size-7 cursor-pointer' onClick={() => { copyText(item.site) }}>
+                                                <lord-icon
+                                                    style={{ "width": "25px", "height": "25px", "paddingTop": "3px", "paddingLeft": "3px" }}
+                                                    src="https://cdn.lordicon.com/iykgtsbt.json"
+                                                    trigger="hover" >
+                                                </lord-icon>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className='py-2 border border-white text-center'>
+                                        <div className='flex items-center justify-center '>
+                                            <span>{item.username}</span>
+                                            <div className='lordiconcopy size-7 cursor-pointer' onClick={() => { copyText(item.username) }}>
+                                                <lord-icon
+                                                    style={{ "width": "25px", "height": "25px", "paddingTop": "3px", "paddingLeft": "3px" }}
+                                                    src="https://cdn.lordicon.com/iykgtsbt.json"
+                                                    trigger="hover" >
+                                                </lord-icon>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className='py-2 border border-white text-center'>
+                                        <div className='flex items-center justify-center '>
+                                            <span>{"*".repeat(item.password.length)}</span>
+                                            <div className='lordiconcopy size-7 cursor-pointer' onClick={() => { copyText(item.password) }}>
+                                                <lord-icon
+                                                    style={{ "width": "25px", "height": "25px", "paddingTop": "3px", "paddingLeft": "3px" }}
+                                                    src="https://cdn.lordicon.com/iykgtsbt.json"
+                                                    trigger="hover" >
+                                                </lord-icon>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className='justify-center py-2 border border-white text-center'>
+                                        <span className='cursor-pointer mx-1' onClick={() => { editPassword(item.id) }}>
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/gwlusjdu.json"
+                                                trigger="hover"
+                                                style={{ "width": "25px", "height": "25px" }}>
+                                            </lord-icon>
+                                        </span>
+                                        <span className='cursor-pointer mx-1' onClick={() => { deletePassword(item.id) }}>
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/skkahier.json"
+                                                trigger="hover"
+                                                style={{ "width": "25px", "height": "25px" }}>
+                                            </lord-icon>
+                                        </span>
+                                    </td>
+                                </tr>
+                            })}
+                        </tbody>
+                    </table>}
+                </div>
+            </div>
+
+        </>
+    )
 }
+
+export default Home
